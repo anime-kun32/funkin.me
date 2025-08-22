@@ -1151,6 +1151,10 @@ details summary{
 .sticky{
         position: sticky;
 }
+.mx-2{
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+}
 .mx-auto{
         margin-left: auto;
         margin-right: auto;
@@ -1162,6 +1166,10 @@ details summary{
 .my-8{
         margin-top: 2rem;
         margin-bottom: 2rem;
+}
+.my-auto{
+        margin-top: auto;
+        margin-bottom: auto;
 }
 .mb-4{
         margin-bottom: 1rem;
@@ -1222,6 +1230,9 @@ details summary{
         text-overflow: ellipsis;
         white-space: nowrap;
 }
+.text-pretty{
+        text-wrap: pretty;
+}
 .rounded{
         border-radius: 0.25rem;
 }
@@ -1256,6 +1267,20 @@ details summary{
 .py-3{
         padding-top: 0.75rem;
         padding-bottom: 0.75rem;
+}
+.text-center{
+        text-align: center;
+}
+.text-2xl{
+        font-size: 1.5rem;
+        line-height: 2rem;
+}
+.text-sm\/5{
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+}
+.font-semibold{
+        font-weight: 600;
 }
 .italic{
         font-style: italic;
@@ -1574,8 +1599,20 @@ small p {
 }
 @media (min-width: 640px){
 
+        .sm\:mx-10{
+                margin-left: 2.5rem;
+                margin-right: 2.5rem;
+        }
+
         .sm\:px-0{
                 padding-left: 0px;
                 padding-right: 0px;
+        }
+}
+@media (min-width: 768px){
+
+        .md\:mx-24{
+                margin-left: 6rem;
+                margin-right: 6rem;
         }
 }

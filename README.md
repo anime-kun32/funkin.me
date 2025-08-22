@@ -20,3 +20,6 @@ for generation, [Tailwind CSS](https://tailwindcss.com/) for styling, and [Iconi
 
 - locally using `npm run dev`
 - in production using `npm run build` and then `zola build`
+
+# Additional Info
+- Zola uses `pulldown-cmark` as it's markdown renderer. See the cheat sheet for some potential markdown specifics <https://pulldown-cmark.github.io/pulldown-cmark/cheat-sheet.html>
