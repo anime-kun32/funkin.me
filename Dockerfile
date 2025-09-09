@@ -1,5 +1,5 @@
 # Set Zola version globally
-ARG ZOLA_VERSION=0.21.0
+ARG ZOLA_VERSION=0.20.0
 
 # --- builder stage ---
 FROM node:20-bullseye AS builder
@@ -27,7 +27,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-RUN zola build 
+RUN zola build --root /app
 
 # --- final stage ---
 FROM debian:bullseye-slim
