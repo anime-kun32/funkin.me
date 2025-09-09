@@ -1,0 +1,37 @@
+name: Build Docker and Upload Zola Output
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t funkinc-zola .
+
+      - name: Extract Zola build output
+        run: |
+          # Create a container from the built image
+          docker create --name extract funkinc-zola
+          # Copy the /app/public directory from the container
+          docker cp extract:/app/public ./public
+          # Remove the container
+          docker rm extract
+
+      - name: Upload Zola output as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zola-public
+          path: ./public
