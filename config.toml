@@ -1,45 +1,25 @@
-# Build stage
-FROM node:20-bullseye AS builder
+# The URL the site will be built for
 
-# Install dependencies needed for Zola
-RUN apt-get update && apt-get install -y wget unzip \
-    && wget https://github.com/getzola/zola/releases/download/v0.19.2/zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz \
-    && tar -xvzf zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin \
-    && rm zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz
+title = "Friday Night Funkin' - The Funkin' Crew Inc."
+description = "Blog posts about Friday Night Funkin' written by various members of The Funkin' Crew Inc.!"
 
-# Set working directory
-WORKDIR /app
+base_url = "https://funkin.me"
 
-# Copy package files and install deps
-COPY package*.json ./
-RUN npm install
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
 
-# Copy the whole project (including config.toml)
-COPY . .
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
 
-# Build frontend
-RUN npm run build
+generate_feeds = true
 
-# Build Zola site (explicit root to avoid config.toml issues)
-RUN zola build --root /app
+[markdown]
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
 
-# ---- Production image ----
-FROM debian:bullseye-slim
+render_emoji = true
 
-# Install Zola only (to serve the site)
-RUN apt-get update && apt-get install -y wget unzip \
-    && wget https://github.com/getzola/zola/releases/download/v0.19.2/zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz \
-    && tar -xvzf zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin \
-    && rm zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz
 
-WORKDIR /app
-
-# Copy built site
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/config.toml ./config.toml
-
-# Expose port (Render needs a port)
-EXPOSE 8080
-
-# Run Zola server on port 8080
-CMD ["zola", "serve", "--root", "/app", "--interface", "0.0.0.0", "--port", "8080"]
+[extra]
+# Put all your custom variables here
