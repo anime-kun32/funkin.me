@@ -1,18 +1,14 @@
 # --- Builder stage ---
 FROM ubuntu:22.04 AS builder
-
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Node.js 20 + dependencies
-RUN apt-get update && apt-get install -y \
-    curl wget unzip ca-certificates gnupg build-essential \
+# Install Node + dependencies
+RUN apt-get update && apt-get install -y curl wget unzip ca-certificates gnupg build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && node -v \
-    && npm -v
+    && apt-get install -y nodejs
 
 # Install Zola
 ARG ZOLA_VERSION=0.19.2
@@ -23,29 +19,24 @@ RUN wget -qO /tmp/zola.tar.gz "https://github.com/getzola/zola/releases/download
     && chmod +x /usr/local/bin/zola \
     && rm -rf /tmp/zola /tmp/zola.tar.gz
 
+# Set working directory to repo root
 WORKDIR /app
 
-# Install Node.js deps
-COPY package*.json ./
-RUN npm ci
-
-# Copy project
+# Copy everything from repo root
 COPY . .
 
-# Build frontend
+# Install Node deps and build frontend
+RUN npm ci
 RUN npm run build
 
-# Build Zola static site
+# Build Zola site (repo root contains config.toml, content, templates)
 RUN zola build
 
 # --- Production stage ---
 FROM nginx:stable-alpine
 
-# Copy built static site
+# Copy static site only
 COPY --from=builder /app/public /usr/share/nginx/html
 
-# Expose port 80 (Render uses this for static hosting)
 EXPOSE 80
-
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
