@@ -1,5 +1,5 @@
 # Set Zola version globally
-ARG ZOLA_VERSION=0.20.1
+ARG ZOLA_VERSION=0.21.0
 
 # --- builder stage ---
 FROM node:20-bullseye AS builder
