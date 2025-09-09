@@ -1,44 +1,55 @@
-# Start with Node.js base (we’ll install Zola manually)
+# Set Zola version globally
+ARG ZOLA_VERSION=0.19.2
+
+# --- builder stage ---
 FROM node:20-bullseye AS builder
 
-# Install dependencies needed for Zola
-RUN apt-get update && apt-get install -y wget unzip \
-    && wget https://github.com/getzola/zola/releases/download/v0.19.2/zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz \
-    && tar -xvzf zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin \
-    && rm zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz
+# bring the ARG into scope again inside this stage
+ARG ZOLA_VERSION
 
-# Set working dir
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends wget ca-certificates unzip \
+  && rm -rf /var/lib/apt/lists/*
+
+# install zola into builder
+RUN wget -qO /tmp/zola.tar.gz "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+  && mkdir -p /tmp/zola \
+  && tar -xzf /tmp/zola.tar.gz -C /tmp/zola \
+  && mv /tmp/zola/zola /usr/local/bin/zola \
+  && chmod +x /usr/local/bin/zola \
+  && rm -rf /tmp/zola /tmp/zola.tar.gz
+
 WORKDIR /app
 
-# Copy package files and install deps
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copy rest of project
 COPY . .
-
-# Build frontend
 RUN npm run build
 
-# Build Zola static site
-RUN zola build
+RUN zola build --root /app
 
-# ---- Production image ----
+# --- final stage ---
 FROM debian:bullseye-slim
 
-# Install Zola only (lighter final image)
-RUN apt-get update && apt-get install -y wget unzip \
-    && wget https://github.com/getzola/zola/releases/download/v0.19.2/zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz \
-    && tar -xvzf zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz -C /usr/local/bin \
-    && rm zola-v0.19.2-x86_64-unknown-linux-gnu.tar.gz
+ARG ZOLA_VERSION
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends wget ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN wget -qO /tmp/zola.tar.gz "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+  && mkdir -p /tmp/zola \
+  && tar -xzf /tmp/zola.tar.gz -C /tmp/zola \
+  && mv /tmp/zola/zola /usr/local/bin/zola \
+  && chmod +x /usr/local/bin/zola \
+  && rm -rf /tmp/zola /tmp/zola.tar.gz
 
 WORKDIR /app
 
-# Copy built site
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/config.toml ./config.toml
 
-# Expose port
-EXPOSE 1111
+EXPOSE 8080
 
-# Run Zola's built-in server
-CMD ["zola", "serve", "--interface", "0.0.0.0", "--port", "1111"]
+CMD ["sh", "-c", "zola serve --root /app --interface 0.0.0.0 --port ${PORT:-8080}"]
